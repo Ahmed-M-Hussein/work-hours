@@ -58,19 +58,42 @@
   .stats{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
   .stats b{display:block;color:var(--text);font:500 17px Inter;font-variant-numeric:tabular-nums}
   .stats div:last-child{text-align:right}
+  #alarm{width:100%;margin-top:20px;padding:12px;border-radius:16px;border:1px solid rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
+  #alarm:hover{background:rgba(232,201,135,.08)}
+  #alarm.on{background:rgba(232,201,135,.16)}
+  #alarm.ring{background:#c0392b;border-color:#c0392b;color:#fff;animation:pulse .6s infinite alternate}
+  @keyframes pulse{to{opacity:.55}}
+  .sec{margin:22px 0 10px}
+  @media (max-width:480px){
+    body{padding:10px;min-height:100dvh}
+    .card{padding:18px 14px;border-radius:22px}
+    h1{font-size:24px;margin:4px 0 14px}
+    h1 br{display:none}
+    .grid,.leave{gap:8px}
+    .leave{grid-template-columns:1fr 1fr 32px;margin-bottom:8px}
+    .field{padding:8px 10px;border-radius:12px;min-width:0}
+    .field span{font-size:10px}
+    input{font-size:16px;min-width:0}
+    .sec{margin:14px 0 8px}
+    #add{padding:9px;border-radius:12px}
+    .result{margin-top:14px;padding:14px;border-radius:18px}
+    #end{font-size:46px}
+    .bar{margin:12px 0 10px}
+    #alarm{margin-top:12px;padding:10px;border-radius:12px;font-size:13px}
+  }
 </style>
 </head>
 <body>
 <main class="card">
   <div class="eyebrow">Time Planner</div>
-  <h1>When do I<br>clock out?</h1>
+  <h1>When do I <br>clock out?</h1>
 
   <div class="grid">
     <label class="field"><span>Clock in</span><input type="time" id="a" value="07:45"></label>
     <label class="field"><span>Total hours</span><input type="number" id="t" value="8" step="0.25" min="0"></label>
   </div>
 
-  <div class="eyebrow" style="margin:22px 0 10px">Leaves</div>
+  <div class="eyebrow sec">Leaves</div>
   <div id="leaves"></div>
   <button id="add" type="button">+ Add leave</button>
 
@@ -82,6 +105,7 @@
       <div><b id="done"></b>Worked</div>
       <div><b id="left"></b>Remaining</div>
     </div>
+    <button id="alarm" type="button"></button>
   </section>
 </main>
 
@@ -111,12 +135,43 @@ function calc() {
   });
   const left = Math.max(total - done, 0);
   const end = (start + left) % 1440;
+  endMin = end;
   const h = Math.floor(end / 60);
   $('end').innerHTML = `${(h % 12) || 12}:${String(end % 60).padStart(2, '0')}<em>${h < 12 ? 'AM' : 'PM'}</em>`;
+  label();
   $('done').textContent = dur(done);
   $('left').textContent = dur(left);
   $('bar').style.width = Math.min(done / total * 100, 100) + '%';
 }
+// Alarm: page must stay open. AudioContext is created on the button click (browser autoplay rule).
+let endMin = 0, armed = false, ringing = null, ctx;
+const clock = m => `${(Math.floor(m / 60) % 12) || 12}:${String(m % 60).padStart(2, '0')} ${m < 720 ? 'AM' : 'PM'}`;
+function label() {
+  const b = $('alarm');
+  b.className = ringing ? 'ring' : armed ? 'on' : '';
+  b.textContent = ringing ? '🔕 Stop alarm' : armed ? `⏰ Alarm on for ${clock(endMin)} (tap to cancel)` : '🔔 Set alarm for leave time';
+}
+function beep() {
+  const o = ctx.createOscillator();
+  o.frequency.value = 880;
+  o.connect(ctx.destination);
+  o.start();
+  o.stop(ctx.currentTime + .3);
+}
+$('alarm').onclick = () => {
+  if (ringing) { clearInterval(ringing); ringing = null; armed = false; }
+  else armed = !armed;
+  if (armed) { ctx ||= new AudioContext(); ctx.resume(); }
+  label();
+};
+setInterval(() => {
+  const n = new Date();
+  if (armed && !ringing && n.getHours() * 60 + n.getMinutes() === endMin) {
+    ringing = setInterval(beep, 700);
+    label();
+  }
+}, 1000);
+
 document.addEventListener('input', calc);
 $('add').onclick = () => { addLeave('', ''); };
 addLeave();
