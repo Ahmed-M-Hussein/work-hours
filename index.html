@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Work Hours Calc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0b10; --card:rgba(255,255,255,.045); --line:rgba(255,255,255,.09);
+    --text:#f2f1ee; --muted:#8b8b96; --gold:#e8c987; --gold2:#b98a3e;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{
+    min-height:100vh;display:grid;place-items:center;padding:24px;
+    font:15px/1.5 Inter,system-ui,sans-serif;color:var(--text);background:var(--bg);
+    background-image:
+      radial-gradient(60% 50% at 15% 0%,rgba(185,138,62,.22),transparent 70%),
+      radial-gradient(50% 45% at 100% 100%,rgba(90,80,200,.20),transparent 70%);
+  }
+  .card{
+    width:100%;max-width:440px;padding:36px 32px;border-radius:28px;
+    background:var(--card);border:1px solid var(--line);
+    backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+  h1{font:300 34px/1.15 Fraunces,serif;margin:8px 0 28px;letter-spacing:-.01em}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid var(--line);transition:.2s}
+  .field:focus-within{border-color:var(--gold);background:rgba(232,201,135,.06);box-shadow:0 0 0 4px rgba(232,201,135,.08)}
+  .field span{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  input{
+    width:100%;background:none;border:0;outline:0;color:var(--text);
+    font:500 20px Inter,sans-serif;font-variant-numeric:tabular-nums;color-scheme:dark;
+  }
+  .leave{display:grid;grid-template-columns:1fr 1fr 34px;gap:12px;margin-bottom:12px}
+  .leave button{border:1px solid var(--line);background:none;color:var(--muted);border-radius:12px;cursor:pointer;font-size:18px}
+  .leave button:hover{color:#ff8a8a;border-color:#ff8a8a}
+  #add{width:100%;padding:12px;border-radius:16px;border:1px dashed rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
+  #add:hover{background:rgba(232,201,135,.08)}
+  .wide{grid-column:span 2}
+  .result{
+    margin-top:26px;padding:26px;border-radius:22px;text-align:center;
+    background:linear-gradient(160deg,rgba(232,201,135,.16),rgba(185,138,62,.05));
+    border:1px solid rgba(232,201,135,.28);
+  }
+  .result small{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+  #end{
+    font:300 64px/1.1 Fraunces,serif;margin:6px 0 2px;letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;
+    font-variant-numeric:tabular-nums;
+  }
+  #end em{font:500 18px Inter,sans-serif;margin-left:6px;-webkit-text-fill-color:var(--gold);letter-spacing:.05em}
+  .bar{height:6px;border-radius:9px;background:rgba(255,255,255,.08);margin:22px 0 16px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .stats{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
+  .stats b{display:block;color:var(--text);font:500 17px Inter;font-variant-numeric:tabular-nums}
+  .stats div:last-child{text-align:right}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="eyebrow">Time Planner</div>
+  <h1>When do I<br>clock out?</h1>
+
+  <div class="grid">
+    <label class="field"><span>Clock in</span><input type="time" id="a" value="07:45"></label>
+    <label class="field"><span>Total hours</span><input type="number" id="t" value="8" step="0.25" min="0"></label>
+  </div>
+
+  <div class="eyebrow" style="margin:22px 0 10px">Leaves</div>
+  <div id="leaves"></div>
+  <button id="add" type="button">+ Add leave</button>
+
+  <section class="result">
+    <small>Leave at</small>
+    <div id="end"></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="stats">
+      <div><b id="done"></b>Worked</div>
+      <div><b id="left"></b>Remaining</div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const toMin = v => { const [h, n] = v.split(':'); return h * 60 + +n; };
+const dur = m => `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`;
+
+function addLeave(out = '12:10', back = '13:45') {
+  const d = document.createElement('div');
+  d.className = 'leave';
+  d.innerHTML = `<label class="field"><span>Leave out</span><input type="time" value="${out}"></label>
+    <label class="field"><span>Back at</span><input type="time" value="${back}"></label>
+    <button type="button" title="Remove">×</button>`;
+  d.querySelector('button').onclick = () => { d.remove(); calc(); };
+  $('leaves').append(d);
+}
+
+function calc() {
+  const total = $('t').value * 60;
+  let start = toMin($('a').value), done = 0;
+  document.querySelectorAll('.leave').forEach(r => {
+    const [o, b] = [...r.querySelectorAll('input')].map(i => i.value);
+    if (!o || !b) return;
+    done += toMin(o) - start;
+    start = toMin(b);
+  });
+  const left = Math.max(total - done, 0);
+  const end = (start + left) % 1440;
+  const h = Math.floor(end / 60);
+  $('end').innerHTML = `${(h % 12) || 12}:${String(end % 60).padStart(2, '0')}<em>${h < 12 ? 'AM' : 'PM'}</em>`;
+  $('done').textContent = dur(done);
+  $('left').textContent = dur(left);
+  $('bar').style.width = Math.min(done / total * 100, 100) + '%';
+}
+document.addEventListener('input', calc);
+$('add').onclick = () => { addLeave('', ''); };
+addLeave();
+calc();
+</script>
+</body>
+</html>
