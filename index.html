@@ -31,7 +31,9 @@
   }
   .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
   h1{font:300 34px/1.15 Fraunces,serif;margin:6px 0 0;letter-spacing:-.01em}
-  .head{display:flex;align-items:center;gap:18px;margin-bottom:28px}
+  .head{display:flex;align-items:center;gap:12px;margin:0 0 24px}
+  .head>div{flex:1;min-width:0}
+  .head .logo{order:1}
   .logo{flex:none;width:160px;height:auto;border-radius:16px;box-shadow:0 10px 30px -8px rgba(232,201,135,.35)}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .field{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid var(--line);transition:.2s}
@@ -44,11 +46,22 @@
   .leave{display:grid;grid-template-columns:1fr 1fr 34px;gap:12px;margin-bottom:12px}
   .leave button{border:1px solid var(--line);background:none;color:var(--muted);border-radius:12px;cursor:pointer;font-size:18px}
   .leave button:hover{color:#ff8a8a;border-color:#ff8a8a}
-  #add{width:100%;padding:12px;border-radius:16px;border:1px dashed rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
-  #add:hover{background:rgba(232,201,135,.08)}
+  #add,#now{width:100%;padding:12px;border-radius:16px;border:1px dashed rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
+  #add:hover,#now:hover{background:rgba(232,201,135,.08)}
   .wide{grid-column:span 2}
+  #hbtn{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:12px;border:1px solid var(--line);background:none;font-size:18px;cursor:pointer}
+  #sbtn{position:absolute;top:10px;left:10px;width:32px;height:32px;border-radius:12px;border:1px solid var(--line);background:none;font-size:16px;cursor:pointer}
+  #sbtn:hover{border-color:var(--gold)}
+  #own{display:none;margin-top:18px;text-align:center;color:var(--gold);font-size:13px}
+  .view .grid,.view .sec,.view #leaves,.view .ctl,.view .acts,.view #hbtn,.view #sbtn{display:none!important}
+  .view #own{display:block!important}
+  #hbtn:hover{border-color:var(--gold)}
+  dialog{width:min(92vw,400px);max-height:80vh;padding:24px;border-radius:24px;border:1px solid var(--line);background:#14141c;color:var(--text)}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  #hist button{display:flex;justify-content:space-between;width:100%;margin-top:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);font:500 13px Inter;cursor:pointer}
+  #hist button.on{border-color:var(--gold);color:var(--gold)}
   .result{
-    margin-top:26px;padding:26px;border-radius:22px;text-align:center;
+    position:relative;    margin-top:26px;padding:26px;border-radius:22px;text-align:center;
     background:linear-gradient(160deg,rgba(232,201,135,.16),rgba(185,138,62,.05));
     border:1px solid rgba(232,201,135,.28);
   }
@@ -64,9 +77,9 @@
   .stats{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
   .stats b{display:block;color:var(--text);font:500 17px Inter;font-variant-numeric:tabular-nums}
   .stats div:last-child{text-align:right}
-  #alarm,#cal{width:100%;padding:12px;border-radius:16px;border:1px solid rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
+  #alarm,#cal,#share{width:100%;padding:12px;border-radius:16px;border:1px solid rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
   .acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
-  #alarm:hover,#cal:hover{background:rgba(232,201,135,.08)}
+  #alarm:hover,#cal:hover,#share:hover{background:rgba(232,201,135,.08)}
   #alarm.on{background:rgba(232,201,135,.16)}
   #alarm.ring{background:#c0392b;border-color:#c0392b;color:#fff;animation:pulse .6s infinite alternate}
   @keyframes pulse{to{opacity:.55}}
@@ -84,12 +97,12 @@
     .field span{font-size:10px}
     input{font-size:16px;min-width:0}
     .sec{margin:14px 0 8px}
-    #add{padding:9px;border-radius:12px}
+    #add,#now{padding:9px;border-radius:12px}
     .result{margin-top:14px;padding:14px;border-radius:18px}
     #end{font-size:46px}
     .bar{margin:12px 0 10px}
     .acts{margin-top:12px;gap:8px}
-    #alarm,#cal{padding:10px 6px;border-radius:12px;font-size:13px}
+    #alarm,#cal,#share{padding:10px 6px;border-radius:12px;font-size:13px}
   }
 </style>
 </head>
@@ -107,9 +120,14 @@
 
   <div class="eyebrow sec">Leaves</div>
   <div id="leaves"></div>
-  <button id="add" type="button">+ Add leave</button>
+  <div class="ctl" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <button id="now" type="button"></button>
+    <button id="add" type="button">+ Add leave</button>
+  </div>
 
   <section class="result">
+    <button id="sbtn" type="button" title="Share live link" aria-label="Share live link">🔗</button>
+    <button id="hbtn" type="button" title="History" aria-label="History">🕘</button>
     <small>Leave at</small>
     <div id="end"></div>
     <div class="bar"><i id="bar"></i></div>
@@ -120,9 +138,17 @@
     <div class="acts">
       <button id="alarm" type="button"></button>
       <button id="cal" type="button" title="Download a calendar event with a system alert">📅 Add to calendar</button>
+      <button id="share" type="button" class="wide">📤 Share card</button>
     </div>
   </section>
+  <a id="own" href="">Plan my own day →</a>
+
 </main>
+
+<dialog id="hd">
+  <div class="eyebrow">History</div>
+  <div id="hist"></div>
+</dialog>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -140,26 +166,56 @@ function addLeave(out = '', back = '') {
 }
 
 const KEY = 'workHoursCalc';
+let view = false, db = { days: {} }, cur = new Date().toLocaleDateString('sv'); // days keyed YYYY-MM-DD (local)
 function save() {
-  try {
-    localStorage[KEY] = JSON.stringify({
-      a: $('a').value, t: $('t').value,
-      leaves: [...document.querySelectorAll('.leave')].map(r => [...r.querySelectorAll('input')].map(i => i.value)),
-    });
-  } catch {} // storage blocked (private mode etc.): just don't persist
+  if (view) return; // shared link is read-only: never overwrite the viewer's own data
+  db.days[cur] = {
+    a: $('a').value, t: $('t').value, end: endMin,
+    leaves: [...document.querySelectorAll('.leave')].map(r => [...r.querySelectorAll('input')].map(i => i.value)),
+  };
+  try { localStorage[KEY] = JSON.stringify(db); } catch {} // storage blocked (private mode etc.): just don't persist
+}
+function show(d) {
+  cur = d;
+  const last = db.days[Object.keys(db.days).sort().pop()] || { a: '07:30', t: 8 }; // new day starts from latest day's settings
+  const s = db.days[d] || { a: last.a, t: last.t, leaves: [] };
+  $('a').value = s.a; $('t').value = s.t;
+  $('leaves').innerHTML = '';
+  s.leaves.forEach(([o, b]) => addLeave(o, b));
 }
 function load() {
+  try { // shared link: #<base64 json of {d, a, t, leaves}>
+    const v = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
+    view = true; cur = v.d; db = { days: { [v.d]: v }};
+    document.body.classList.add('view');
+    $('own').href = location.href.split('#')[0];
+    return show(cur);
+  } catch {}
   try {
     const s = JSON.parse(localStorage[KEY]);
-    $('a').value = s.a; $('t').value = s.t;
-    s.leaves.forEach(([o, b]) => addLeave(o, b));
+    db = s.days ? s : { days: { [cur]: s } }; // old single-day format becomes today
   } catch {} // nothing saved yet or corrupt: keep defaults
+  show(cur);
 }
+function history() {
+  $('hist').innerHTML = Object.keys(db.days).sort().reverse().map(d => {
+    const s = db.days[d], n = s.leaves.filter(l => l[0] && l[1]).length;
+    return `<button type="button" data-d="${d}" class="${d === cur ? 'on' : ''}"><span>${new Date(d + 'T00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span><span>${s.a ? clock(toMin(s.a)) : '--'} → ${s.end >= 0 ? clock(s.end) : '--'}${n ? ` · ${n} leave${n > 1 ? 's' : ''}` : ''}</span></button>`;
+  }).join('');
+}
+$('hbtn').onclick = () => $('hd').showModal();
+$('hd').onclick = e => { if (e.target === $('hd')) $('hd').close(); }; // click backdrop to close
+$('hist').onclick = e => { const d = e.target.closest('button')?.dataset.d; if (d) { show(d); calc(); $('hd').close(); } };
+
+const openLeave = () => [...document.querySelectorAll('.leave')].find(r => { const i = r.querySelectorAll('input'); return i[0].value && !i[1].value; });
+const nowHM = () => new Date().toTimeString().slice(0, 5);
 
 function calc() {
-  save();
+  const isToday = cur === new Date().toLocaleDateString('sv');
+  $('now').disabled = !isToday;
+  $('now').textContent = openLeave() ? '↩ Back now' : '🚪 Leave now';
   const total = $('t').value * 60;
-  if (!$('a').value || !(total > 0)) { $('end').textContent = '--:--'; endMin = -1; return; }
+  if (!$('a').value || !(total > 0)) { $('end').textContent = '--:--'; endMin = -1; save(); history(); return; }
   let start = toMin($('a').value), done = 0;
   const segs = []; // worked segments [from, to] in minutes
   document.querySelectorAll('.leave').forEach(r => {
@@ -174,11 +230,13 @@ function calc() {
   segs.push([start, start + left]);
   const end = (start + left) % 1440;
   endMin = end;
+  save();
+  history();
   const h = Math.floor(end / 60);
   $('end').innerHTML = `${(h % 12) || 12}:${String(end % 60).padStart(2, '0')}<em>${h < 12 ? 'AM' : 'PM'}</em>`;
   label();
   // worked so far = time actually elapsed inside each segment, up to the current clock time
-  const n = new Date(), now = n.getHours() * 60 + n.getMinutes();
+  const n = new Date(), now = isToday ? n.getHours() * 60 + n.getMinutes() : 1440; // past day: all worked
   const worked = segs.reduce((t, [f, e]) => t + Math.max(Math.min(now, e) - f, 0), 0);
   $('done').textContent = dur(worked);
   $('left').textContent = dur(total - worked);
@@ -226,6 +284,46 @@ $('cal').onclick = () => {
   URL.revokeObjectURL(a.href);
 };
 
+// Share link: the state is encoded in the URL hash, so the recipient sees a live read-only card (no server)
+$('sbtn').onclick = async () => {
+  if (endMin < 0) return;
+  const s = db.days[cur], v = { d: cur, a: s.a, t: s.t, leaves: s.leaves.filter(l => l[0] && l[1]) };
+  const url = location.href.split('#')[0] + '#' + btoa(unescape(encodeURIComponent(JSON.stringify(v))));
+  try {
+    if (navigator.share) await navigator.share({ text: `I'm leaving at ${clock(endMin)}`, url });
+    else { await navigator.clipboard.writeText(url); $('sbtn').textContent = '✓'; setTimeout(() => $('sbtn').textContent = '🔗', 1500); }
+  } catch {}
+};
+// Share the card as a PNG drawn on a canvas (falls back to download when file sharing is unsupported)
+$('share').onclick = async () => {
+  if (endMin < 0) return;
+  await document.fonts.ready;
+  const c = document.createElement('canvas'), g = c.getContext('2d'), W = c.width = 800, H = c.height = 500;
+  g.fillStyle = '#0b0b10'; g.fillRect(0, 0, W, H);
+  const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#3a2f19'); bg.addColorStop(1, '#17150f');
+  g.fillStyle = bg; g.beginPath(); g.roundRect(30, 30, W - 60, H - 60, 40); g.fill();
+  g.strokeStyle = 'rgba(232,201,135,.45)'; g.lineWidth = 2; g.stroke();
+  g.textAlign = 'center';
+  g.fillStyle = '#e8c987'; g.font = '500 22px Inter, sans-serif'; g.letterSpacing = '5px'; g.fillText('LEAVE AT', W / 2, 105); g.letterSpacing = '0px';
+  const [t, ap] = clock(endMin).split(' ');
+  g.font = '300 130px Fraunces, serif'; const tw = g.measureText(t).width;
+  g.font = '400 40px Fraunces, serif'; const aw = g.measureText(ap).width + 12;
+  const x = (W - tw - aw) / 2;
+  g.textAlign = 'left'; g.fillStyle = '#fff'; g.font = '300 130px Fraunces, serif'; g.fillText(t, x, 250);
+  g.fillStyle = '#e8c987'; g.font = '400 40px Fraunces, serif'; g.fillText(ap, x + tw + 12, 250);
+  g.fillStyle = 'rgba(232,201,135,.2)'; g.beginPath(); g.roundRect(80, 300, W - 160, 10, 5); g.fill();
+  g.fillStyle = '#e8c987'; g.beginPath(); g.roundRect(80, 300, (W - 160) * parseFloat($('bar').style.width || 0) / 100, 10, 5); g.fill();
+  g.textAlign = 'left'; g.fillStyle = '#fff'; g.font = '500 34px Inter, sans-serif'; g.fillText($('done').textContent, 80, 380);
+  g.textAlign = 'right'; g.fillText($('left').textContent, W - 80, 380);
+  g.fillStyle = '#9a98a6'; g.font = '400 22px Inter, sans-serif';
+  g.textAlign = 'left'; g.fillText('Worked', 80, 415); g.textAlign = 'right'; g.fillText('Remaining', W - 80, 415);
+  const file = new File([await new Promise(r => c.toBlob(r))], 'leave-time.png', { type: 'image/png' });
+  try {
+    if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], text: `I'm leaving at ${clock(endMin)}` });
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; a.click(); URL.revokeObjectURL(a.href); }
+  } catch {} // share sheet dismissed
+};
+
 setInterval(() => {
   const n = new Date();
   if (armed && !ringing && n.getHours() * 60 + n.getMinutes() === endMin) {
@@ -237,6 +335,12 @@ setInterval(() => {
 setInterval(calc, 30000); // keep worked/remaining live
 document.addEventListener('input', calc);
 $('add').onclick = () => addLeave();
+$('now').onclick = () => {
+  const r = openLeave();
+  if (r) r.querySelectorAll('input')[1].value = nowHM(); else addLeave(nowHM());
+  calc();
+};
+addEventListener('hashchange', () => location.reload()); // link opened in an already-open page
 load();
 calc();
 </script>
