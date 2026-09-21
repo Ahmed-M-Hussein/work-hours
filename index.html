@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Work Hours Calc</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b0b10">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,500&display=swap" rel="stylesheet">
 <style>
@@ -26,7 +30,9 @@
     box-shadow:0 30px 80px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
   }
   .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
-  h1{font:300 34px/1.15 Fraunces,serif;margin:8px 0 28px;letter-spacing:-.01em}
+  h1{font:300 34px/1.15 Fraunces,serif;margin:6px 0 0;letter-spacing:-.01em}
+  .head{display:flex;align-items:center;gap:18px;margin-bottom:28px}
+  .logo{flex:none;width:160px;height:auto;border-radius:16px;box-shadow:0 10px 30px -8px rgba(232,201,135,.35)}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .field{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid var(--line);transition:.2s}
   .field:focus-within{border-color:var(--gold);background:rgba(232,201,135,.06);box-shadow:0 0 0 4px rgba(232,201,135,.08)}
@@ -58,8 +64,9 @@
   .stats{display:flex;justify-content:space-between;color:var(--muted);font-size:13px}
   .stats b{display:block;color:var(--text);font:500 17px Inter;font-variant-numeric:tabular-nums}
   .stats div:last-child{text-align:right}
-  #alarm{width:100%;margin-top:20px;padding:12px;border-radius:16px;border:1px solid rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
-  #alarm:hover{background:rgba(232,201,135,.08)}
+  #alarm,#cal{width:100%;padding:12px;border-radius:16px;border:1px solid rgba(232,201,135,.4);background:none;color:var(--gold);font:500 14px Inter;cursor:pointer;transition:.2s}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+  #alarm:hover,#cal:hover{background:rgba(232,201,135,.08)}
   #alarm.on{background:rgba(232,201,135,.16)}
   #alarm.ring{background:#c0392b;border-color:#c0392b;color:#fff;animation:pulse .6s infinite alternate}
   @keyframes pulse{to{opacity:.55}}
@@ -67,7 +74,9 @@
   @media (max-width:480px){
     body{padding:10px;min-height:100dvh}
     .card{padding:18px 14px;border-radius:22px}
-    h1{font-size:24px;margin:4px 0 14px}
+    h1{font-size:24px;margin:2px 0 0}
+    .head{gap:12px;margin-bottom:14px}
+    .logo{width:120px;border-radius:12px}
     h1 br{display:none}
     .grid,.leave{gap:8px}
     .leave{grid-template-columns:1fr 1fr 32px;margin-bottom:8px}
@@ -79,14 +88,17 @@
     .result{margin-top:14px;padding:14px;border-radius:18px}
     #end{font-size:46px}
     .bar{margin:12px 0 10px}
-    #alarm{margin-top:12px;padding:10px;border-radius:12px;font-size:13px}
+    .acts{margin-top:12px;gap:8px}
+    #alarm,#cal{padding:10px 6px;border-radius:12px;font-size:13px}
   }
 </style>
 </head>
 <body>
 <main class="card">
-  <div class="eyebrow">Time Planner</div>
-  <h1>When do I <br>clock out?</h1>
+  <header class="head">
+    <svg class="logo" viewBox="-1 5 18 7" shape-rendering="crispEdges" role="img" aria-label="Thug life glasses"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3d896"/><stop offset="1" stop-color="#b98a3e"/></linearGradient></defs><rect x="-1" y="5" width="18" height="7" rx="1.2" fill="url(#lg)"/><g fill="#0b0b10"><rect x="0" y="6" width="16" height="1"/><rect x="1" y="7" width="6" height="1"/><rect x="9" y="7" width="6" height="1"/><rect x="1" y="8" width="6" height="1"/><rect x="9" y="8" width="6" height="1"/><rect x="2" y="9" width="4" height="1"/><rect x="10" y="9" width="4" height="1"/><rect x="3" y="10" width="2" height="1"/><rect x="11" y="10" width="2" height="1"/></g><g fill="#464654"><rect x="2" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/><rect x="11" y="7" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/></g></svg>
+    <div><div class="eyebrow">Time Planner</div><h1>When do I <br>clock out?</h1></div>
+  </header>
 
   <div class="grid">
     <label class="field"><span>Clock in</span><input type="time" id="a" value="07:30"></label>
@@ -105,7 +117,10 @@
       <div><b id="done"></b>Worked</div>
       <div><b id="left"></b>Remaining</div>
     </div>
-    <button id="alarm" type="button"></button>
+    <div class="acts">
+      <button id="alarm" type="button"></button>
+      <button id="cal" type="button" title="Download a calendar event with a system alert">📅 Add to calendar</button>
+    </div>
   </section>
 </main>
 
@@ -124,7 +139,25 @@ function addLeave(out = '', back = '') {
   $('leaves').append(d);
 }
 
+const KEY = 'workHoursCalc';
+function save() {
+  try {
+    localStorage[KEY] = JSON.stringify({
+      a: $('a').value, t: $('t').value,
+      leaves: [...document.querySelectorAll('.leave')].map(r => [...r.querySelectorAll('input')].map(i => i.value)),
+    });
+  } catch {} // storage blocked (private mode etc.): just don't persist
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage[KEY]);
+    $('a').value = s.a; $('t').value = s.t;
+    s.leaves.forEach(([o, b]) => addLeave(o, b));
+  } catch {} // nothing saved yet or corrupt: keep defaults
+}
+
 function calc() {
+  save();
   const total = $('t').value * 60;
   if (!$('a').value || !(total > 0)) { $('end').textContent = '--:--'; endMin = -1; return; }
   let start = toMin($('a').value), done = 0;
@@ -157,7 +190,7 @@ const clock = m => `${(Math.floor(m / 60) % 12) || 12}:${String(m % 60).padStart
 function label() {
   const b = $('alarm');
   b.className = ringing ? 'ring' : armed ? 'on' : '';
-  b.textContent = ringing ? '🔕 Stop alarm' : armed ? `⏰ Alarm on for ${clock(endMin)} (tap to cancel)` : '🔔 Set alarm for leave time';
+  b.textContent = ringing ? '🔕 Stop alarm' : armed ? `⏰ On · ${clock(endMin)}` : '🔔 In-page alarm';
 }
 function beep() {
   const o = ctx.createOscillator();
@@ -172,6 +205,27 @@ $('alarm').onclick = () => {
   if (armed) { ctx ||= new AudioContext(); ctx.resume(); }
   label();
 };
+// Calendar event with system alerts (10 min before + at leave time); works with the page closed.
+function ics() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const day = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+  const t = m => `T${p(Math.floor(m / 60))}${p(m % 60)}00`; // floating local time = device timezone
+  const alarm = (trigger, text) => ['BEGIN:VALARM', `TRIGGER:${trigger}`, 'ACTION:DISPLAY', `DESCRIPTION:${text}`, 'END:VALARM'];
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Work Hours Calc//EN', 'BEGIN:VEVENT',
+    `UID:${Date.now()}@workhourscalc`, `DTSTAMP:${d.toISOString().replace(/[-:]|\.\d+/g, '')}`,
+    `DTSTART:${day}${t(endMin)}`, `DTEND:${day}${t(Math.min(endMin + 15, 1439))}`, 'SUMMARY:Time to clock out',
+    ...alarm('-PT10M', 'Clock out in 10 minutes'), ...alarm('PT0M', 'Time to clock out'),
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+}
+$('cal').onclick = () => {
+  if (endMin < 0) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics()], { type: 'text/calendar' }));
+  a.download = 'clock-out.ics';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
 setInterval(() => {
   const n = new Date();
   if (armed && !ringing && n.getHours() * 60 + n.getMinutes() === endMin) {
@@ -183,6 +237,7 @@ setInterval(() => {
 setInterval(calc, 30000); // keep worked/remaining live
 document.addEventListener('input', calc);
 $('add').onclick = () => addLeave();
+load();
 calc();
 </script>
 </body>
