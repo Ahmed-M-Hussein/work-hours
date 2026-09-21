@@ -89,7 +89,7 @@
   <h1>When do I <br>clock out?</h1>
 
   <div class="grid">
-    <label class="field"><span>Clock in</span><input type="time" id="a" value="07:45"></label>
+    <label class="field"><span>Clock in</span><input type="time" id="a" value="07:30"></label>
     <label class="field"><span>Total hours</span><input type="number" id="t" value="8" step="0.25" min="0"></label>
   </div>
 
@@ -114,7 +114,7 @@ const $ = id => document.getElementById(id);
 const toMin = v => { const [h, n] = v.split(':'); return h * 60 + +n; };
 const dur = m => `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`;
 
-function addLeave(out = '12:10', back = '13:45') {
+function addLeave(out = '', back = '') {
   const d = document.createElement('div');
   d.className = 'leave';
   d.innerHTML = `<label class="field"><span>Leave out</span><input type="time" value="${out}"></label>
@@ -126,22 +126,30 @@ function addLeave(out = '12:10', back = '13:45') {
 
 function calc() {
   const total = $('t').value * 60;
+  if (!$('a').value || !(total > 0)) { $('end').textContent = '--:--'; endMin = -1; return; }
   let start = toMin($('a').value), done = 0;
+  const segs = []; // worked segments [from, to] in minutes
   document.querySelectorAll('.leave').forEach(r => {
     const [o, b] = [...r.querySelectorAll('input')].map(i => i.value);
-    if (!o || !b) return;
+    // skip unfinished or out-of-order rows so they can't produce negative time
+    if (!o || !b || toMin(o) < start || toMin(b) < toMin(o)) return;
+    segs.push([start, toMin(o)]);
     done += toMin(o) - start;
     start = toMin(b);
   });
   const left = Math.max(total - done, 0);
+  segs.push([start, start + left]);
   const end = (start + left) % 1440;
   endMin = end;
   const h = Math.floor(end / 60);
   $('end').innerHTML = `${(h % 12) || 12}:${String(end % 60).padStart(2, '0')}<em>${h < 12 ? 'AM' : 'PM'}</em>`;
   label();
-  $('done').textContent = dur(done);
-  $('left').textContent = dur(left);
-  $('bar').style.width = Math.min(done / total * 100, 100) + '%';
+  // worked so far = time actually elapsed inside each segment, up to the current clock time
+  const n = new Date(), now = n.getHours() * 60 + n.getMinutes();
+  const worked = segs.reduce((t, [f, e]) => t + Math.max(Math.min(now, e) - f, 0), 0);
+  $('done').textContent = dur(worked);
+  $('left').textContent = dur(total - worked);
+  $('bar').style.width = worked / total * 100 + '%';
 }
 // Alarm: page must stay open. AudioContext is created on the button click (browser autoplay rule).
 let endMin = 0, armed = false, ringing = null, ctx;
@@ -172,9 +180,9 @@ setInterval(() => {
   }
 }, 1000);
 
+setInterval(calc, 30000); // keep worked/remaining live
 document.addEventListener('input', calc);
-$('add').onclick = () => { addLeave('', ''); };
-addLeave();
+$('add').onclick = () => addLeave();
 calc();
 </script>
 </body>
